@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    /* Core */
+    --background: oklch(0.98 0.005 90);
+    --foreground: oklch(0.21 0.045 265);
+    --card-bg: oklch(1 0 0);
+
+    /* Primary (teal) */
+    --primary: oklch(0.7 0.14 180);
+    --primary-hover: oklch(0.62 0.12 180);
+    --primary-fg: oklch(0.52 0.1 180);
+    --primary-light: oklch(0.98 0.02 175);
+
+    /* Muted / secondary text */
+    --muted: oklch(0.55 0.015 285);
+    --muted-fg: oklch(0.72 0.01 285);
+
+    /* Borders */
+    --ring: oklch(0.92 0.005 285);
+    --ring-hover: oklch(0.87 0.005 285);
+
+    /* Body text */
+    --body: oklch(0.37 0.015 285);
+
+    /* Disabled */
+    --disabled: oklch(0.87 0.005 285);
+
+    /* Player colors */
+    --p1: oklch(0.62 0.19 260);
+    --p1-light: oklch(0.97 0.015 260);
+    --p1-fg: oklch(0.47 0.2 260);
+    --p2: oklch(0.58 0.22 25);
+    --p2-light: oklch(0.97 0.015 25);
+    --p2-fg: oklch(0.45 0.18 25);
+
+    /* Progress bar */
+    --progress-from: oklch(0.7 0.17 165);
+    --progress-to: oklch(0.6 0.15 165);
+
+    /* Match glow */
+    --match-glow: oklch(0.7 0.17 165 / 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card-bg: var(--card-bg);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-fg: var(--primary-fg);
+    --color-primary-light: var(--primary-light);
+    --color-muted: var(--muted);
+    --color-muted-fg: var(--muted-fg);
+    --color-ring: var(--ring);
+    --color-ring-hover: var(--ring-hover);
+    --color-body: var(--body);
+    --color-disabled: var(--disabled);
+    --color-p1: var(--p1);
+    --color-p1-light: var(--p1-light);
+    --color-p1-fg: var(--p1-fg);
+    --color-p2: var(--p2);
+    --color-p2-light: var(--p2-light);
+    --color-p2-fg: var(--p2-fg);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@layer base {
+    body {
+        @apply bg-background text-foreground text-sm;
+        font-family: Arial, Helvetica, sans-serif;
+    }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Card flip animation */
+.card-container {
+    perspective: 600px;
+}
+
+.card-inner {
+    transition: transform 0.35s ease;
+    transform-style: preserve-3d;
+}
+
+.card-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.card-back {
+    transform: rotateY(0deg);
+}
+
+.card-front {
+    transform: rotateY(180deg);
+}
+
+/* Progress bar */
+.progress-bar {
+    background: linear-gradient(90deg, var(--progress-from), var(--progress-to));
+}
+
+/* Matched card glow */
+.card-inner.flipped .card-front {
+    animation: matchPulse 0.4s ease;
+}
+
+@keyframes matchPulse {
+    0% {
+        box-shadow: 0 0 0 0 var(--match-glow);
+    }
+    50% {
+        box-shadow: 0 0 0 8px transparent;
+    }
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
 }
