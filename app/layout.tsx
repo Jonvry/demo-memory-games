@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 const SITE_NAME = "Memory Game";
 const SITE_DESCRIPTION =
     "A fun memory matching card game — flip cards and find all matching pairs!";
-const SITE_URL = "https://demo-memory-game.vercel.app";
+const SITE_URL = "https://demo-memory-games.vercel.app";
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),

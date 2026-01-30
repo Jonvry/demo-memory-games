@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
                 disallow: "/api",
             },
         ],
-        sitemap: "https://demo-memory-game.vercel.app/sitemap.xml",
+        sitemap: "https://demo-memory-games.vercel.app/sitemap.xml",
     };
 }
