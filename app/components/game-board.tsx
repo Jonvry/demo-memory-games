@@ -10,6 +10,7 @@ import {
     generateCards,
 } from "../lib/cards";
 import { Card } from "./card";
+import { useSounds } from "../hooks/use-sounds";
 
 interface GameBoardProps {
     boardSize: BoardSize;
@@ -38,6 +39,7 @@ const TIME_LIMITS: Record<string, number> = {
 };
 
 export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: GameBoardProps) {
+    const { muted, toggleMute, playFlip, playMatch, playMismatch, playWin, playLose } = useSounds();
     const [cards, setCards] = useState<CardData[]>(() =>
         generateCards(boardSize.totalCards, theme),
     );
@@ -49,8 +51,9 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
     const [won, setWon] = useState(false);
     const [locked, setLocked] = useState(false);
     const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+    const containerRef = useRef<HTMLDivElement>(null);
     const totalPairs = boardSize.totalCards / 2;
     const matchedPairs = cards.filter((c) => c.isMatched).length / 2;
     const player1Pairs = cards.filter((c) => c.matchedBy === 1).length / 2;
@@ -80,6 +83,11 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
         setGameOver(true);
         setWon(isWin);
         setIsRunning(false);
+        if (isWin) {
+            playWin();
+        } else {
+            playLose();
+        }
     }
 
     const handleCardClick = useCallback(
@@ -88,6 +96,8 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
             if (cards[index].isFlipped || cards[index].isMatched) return;
 
             if (!isRunning) setIsRunning(true);
+            setFocusedIndex(null);
+            playFlip();
 
             const newCards = [...cards];
             newCards[index] = { ...newCards[index], isFlipped: true };
@@ -103,6 +113,7 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
                 if (newCards[first].emoji === newCards[second].emoji) {
                     // Match — tag with current player, keep turn
                     setTimeout(() => {
+                        playMatch();
                         setCards((prev) =>
                             prev.map((c, i) =>
                                 i === first || i === second
@@ -121,6 +132,7 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
                 } else {
                     // No match — switch player in 2-player mode
                     setTimeout(() => {
+                        playMismatch();
                         setCards((prev) =>
                             prev.map((c, i) =>
                                 i === first || i === second ? { ...c, isFlipped: false } : c,
@@ -135,7 +147,18 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
                 }
             }
         },
-        [cards, flipped, locked, gameOver, isRunning, currentPlayer, playerCount],
+        [
+            cards,
+            flipped,
+            locked,
+            gameOver,
+            isRunning,
+            currentPlayer,
+            playerCount,
+            playFlip,
+            playMatch,
+            playMismatch,
+        ],
     );
 
     const restart = useCallback(() => {
@@ -148,7 +171,88 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
         setWon(false);
         setLocked(false);
         setCurrentPlayer(1);
+        setFocusedIndex(null);
     }, [boardSize, theme]);
+
+    // Keyboard navigation
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            const { cols, totalCards } = boardSize;
+            const rows = totalCards / cols;
+
+            switch (e.key) {
+                case "ArrowUp": {
+                    e.preventDefault();
+                    setFocusedIndex((prev) => {
+                        if (prev === null) return 0;
+                        const row = Math.floor(prev / cols);
+                        if (row > 0) return prev - cols;
+                        return prev;
+                    });
+                    break;
+                }
+                case "ArrowDown": {
+                    e.preventDefault();
+                    setFocusedIndex((prev) => {
+                        if (prev === null) return 0;
+                        const row = Math.floor(prev / cols);
+                        if (row < rows - 1) return prev + cols;
+                        return prev;
+                    });
+                    break;
+                }
+                case "ArrowLeft": {
+                    e.preventDefault();
+                    setFocusedIndex((prev) => {
+                        if (prev === null) return 0;
+                        if (prev > 0) return prev - 1;
+                        return prev;
+                    });
+                    break;
+                }
+                case "ArrowRight": {
+                    e.preventDefault();
+                    setFocusedIndex((prev) => {
+                        if (prev === null) return 0;
+                        if (prev < totalCards - 1) return prev + 1;
+                        return prev;
+                    });
+                    break;
+                }
+                case "Enter":
+                case " ": {
+                    e.preventDefault();
+                    if (focusedIndex !== null) {
+                        handleCardClick(focusedIndex);
+                    }
+                    break;
+                }
+                case "r":
+                case "R": {
+                    e.preventDefault();
+                    restart();
+                    break;
+                }
+                case "Escape": {
+                    e.preventDefault();
+                    onBack();
+                    break;
+                }
+                case "m":
+                case "M": {
+                    e.preventDefault();
+                    toggleMute();
+                    break;
+                }
+            }
+        },
+        [boardSize, focusedIndex, handleCardClick, restart, onBack, toggleMute],
+    );
+
+    // Auto-focus container on mount
+    useEffect(() => {
+        containerRef.current?.focus();
+    }, []);
 
     return (
         <main className="w-full min-h-dvh px-4 py-8 font-sans max-w-lg flex mx-auto flex-col">
@@ -167,10 +271,15 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
                 player1Pairs={player1Pairs}
                 player2Pairs={player2Pairs}
                 difficulty={boardSize.label.replace(/^\S+\s*/, "")}
+                muted={muted}
+                onToggleMute={toggleMute}
             />
 
             <div
-                className="grid w-full gap-2 sm:gap-3"
+                ref={containerRef}
+                tabIndex={0}
+                onKeyDown={handleKeyDown}
+                className="grid w-full gap-2 sm:gap-3 outline-none"
                 style={{
                     gridTemplateColumns: `repeat(${boardSize.cols}, 1fr)`,
                     aspectRatio: `${boardSize.cols} / ${boardSize.rows}`,
@@ -185,6 +294,7 @@ export function GameBoard({ boardSize, theme, gameMode, playerCount, onBack }: G
                         cardBackClass={theme.cardBack}
                         disabled={locked || gameOver}
                         compact={boardSize.totalCards === 48}
+                        isFocused={focusedIndex === i}
                     />
                 ))}
             </div>

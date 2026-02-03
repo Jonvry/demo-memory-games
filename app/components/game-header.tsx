@@ -16,6 +16,8 @@ interface GameHeaderProps {
     player1Pairs: number;
     player2Pairs: number;
     difficulty: string;
+    muted: boolean;
+    onToggleMute: () => void;
 }
 
 export function GameHeader({
@@ -33,12 +35,14 @@ export function GameHeader({
     player1Pairs,
     player2Pairs,
     difficulty,
+    muted,
+    onToggleMute,
 }: GameHeaderProps) {
     const progress = totalPairs > 0 ? (matchedPairs / totalPairs) * 100 : 0;
 
     return (
         <div className="mb-4 w-full space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
                 <button
                     onClick={onBack}
                     className="rounded-lg bg-ring px-3 py-1.5 text-sm font-medium text-body flex gap-1 items-center transition hover:bg-ring-hover"
@@ -59,6 +63,46 @@ export function GameHeader({
                         <path d="M19 12H5" />
                     </svg>
                     Back
+                </button>
+                <button
+                    onClick={onToggleMute}
+                    className="rounded-lg bg-ring px-3 py-1.5 text-sm font-medium text-body transition hover:bg-ring-hover"
+                    aria-label={muted ? "Unmute sounds" : "Mute sounds"}
+                    title={muted ? "Unmute (M)" : "Mute (M)"}
+                >
+                    {muted ? (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M11 5 6 9H2v6h4l5 4V5Z" />
+                            <line x1="22" x2="16" y1="9" y2="15" />
+                            <line x1="16" x2="22" y1="9" y2="15" />
+                        </svg>
+                    ) : (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M11 5 6 9H2v6h4l5 4V5Z" />
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                        </svg>
+                    )}
                 </button>
                 <button
                     onClick={onRestart}

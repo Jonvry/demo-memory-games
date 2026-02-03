@@ -123,3 +123,10 @@
         box-shadow: 0 0 0 0 transparent;
     }
 }
+
+/* Keyboard focus indicator */
+.card-focused .card-inner {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 0.75rem;
+}
