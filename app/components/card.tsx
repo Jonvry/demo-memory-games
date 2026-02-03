@@ -9,6 +9,7 @@ interface CardProps {
     cardBackClass: string;
     disabled: boolean;
     compact?: boolean;
+    isFocused?: boolean;
 }
 
 export const Card = memo(function Card({
@@ -18,6 +19,7 @@ export const Card = memo(function Card({
     cardBackClass,
     disabled,
     compact,
+    isFocused,
 }: CardProps) {
     const isRevealed = card.isFlipped || card.isMatched;
 
@@ -29,7 +31,10 @@ export const Card = memo(function Card({
         <button
             onClick={handleClick}
             disabled={disabled || isRevealed}
-            className="card-container aspect-square w-full cursor-pointer @container"
+            className={cn(
+                "card-container aspect-square w-full cursor-pointer @container",
+                isFocused && "card-focused",
+            )}
             aria-label={isRevealed ? card.emoji : "Hidden card"}
         >
             <div className={cn("card-inner relative size-full", isRevealed && "flipped")}>
